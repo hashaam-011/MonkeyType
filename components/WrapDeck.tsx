@@ -270,7 +270,7 @@ const DedicationSlide = ({ data }: { data: any }) => {
 
 const IdentitySlide = ({ data }: { data: any }) => {
     // Try to get keyboard from details; if missing, attempt to parse it from the bio string.
-    const extractKeyboardFromBio = (bio) => {
+    const extractKeyboardFromBio = (bio: string | undefined): string | null => {
         if (!bio) return null;
         const match = bio.match(/keyboard[:\s]+([\w\s-]+)/i);
         return match ? match[1].trim() : null;
