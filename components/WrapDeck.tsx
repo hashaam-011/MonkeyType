@@ -315,7 +315,7 @@ const SummarySlide = ({ data }: { data: any }) => {
     const hours = (data.stats.timeTyping / 3600).toFixed(1);
     const percentile = data.calculatedProfile?.percentile60s;
     const topVal = percentile ? Math.max(1, 100 - Math.round(percentile)) : null;
-
+    //
     return (
         <div className="relative w-full max-w-sm aspect-[3/4.5] bg-black rounded-3xl border border-zinc-700 p-6 flex flex-col justify-between shadow-2xl scale-[0.95] md:scale-100">
             {/* Header */}
