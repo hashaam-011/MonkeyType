@@ -10,6 +10,7 @@ import { useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 // @ts-ignore
 import mtLogo from '@/app/assets/image.png';
+import ScrambleText from './ScrambleText';
 
 // --- Assets ---
 // Using a placeholder Lo-Fi track. In a real app, this would be a local asset or a stable CDN link.
@@ -116,10 +117,14 @@ const IntroSlide = ({ data }: { data: any }) => {
                 {/* Avatar Logic */}
                 {isDefaultAvatar ? (
                     <>
-                        <User className="w-12 h-12 text-zinc-500 animate-pulse" />
+                        <div className="absolute inset-0 bg-gradient-to-tr from-zinc-800 via-zinc-700 to-zinc-800 animate-pulse" />
+                        <User className="w-10 h-10 text-zinc-500 relative z-10" />
+
                         {/* Tooltip on hover */}
-                        <div className="absolute inset-0 bg-black/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity p-1 text-center">
-                            <span className="text-[8px] text-white">Nothing found against your monkeytype profile</span>
+                        <div className="absolute inset-0 bg-black/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity p-2 text-center z-20">
+                            <span className="text-[9px] text-yellow-500 font-bold leading-tight">
+                                Please add an avatar to your Monkeytype profile!
+                            </span>
                         </div>
                     </>
                 ) : (
@@ -228,56 +233,53 @@ const StorySlide = ({ data }: { data: any }) => {
             title="The Chapter of 2025"
             className="border-zinc-700 bg-[#121212]"
             cover={
-                <div className="flex flex-col items-center justify-center h-full w-full relative bg-[#1a1a1a]">
-                    {/* Envelope Flap Look */}
-                    <div className="absolute top-0 w-full h-1/2 bg-[#222] clip-path-polygon-[0_0,100%_0,50%_100%] shadow-xl" style={{ clipPath: 'polygon(0 0, 100% 0, 50% 100%)' }} />
+                <div className="flex flex-col items-center justify-center h-full w-full relative bg-zinc-900 group cursor-pointer transition-colors hover:bg-zinc-800">
+                    {/* Simplified Card/Letter Look */}
+                    <div className="w-48 h-32 bg-zinc-200 rounded shadow-2xl transform transition-transform group-hover:scale-105 group-hover:-rotate-2 flex items-center justify-center relative overflow-hidden">
+                        {/* Flap */}
+                        <div className="absolute top-0 w-full h-1/2 bg-zinc-300 clip-path-polygon-[0_0,100%_0,50%_100%]" style={{ clipPath: 'polygon(0 0, 100% 0, 50% 100%)' }} />
 
-                    <div className="z-10 bg-zinc-800 p-4 rounded-full shadow-2xl border-4 border-zinc-700">
-                        <Mail className="w-12 h-12 text-zinc-400" />
+                        <Mail className="w-8 h-8 text-zinc-400 relative z-10 mt-4" />
                     </div>
+
                     <div className="mt-8 text-center px-6">
                         <p className="text-zinc-500 font-serif italic text-lg opacity-60">A message from 2025...</p>
-                        <p className="text-xs text-zinc-700 mt-2 uppercase tracking-widest">Type "open" to unlock</p>
+                        <p className="text-xs text-zinc-500 mt-4 uppercase tracking-widest bg-zinc-800/50 py-2 px-4 rounded-full group-hover:bg-zinc-700 transition-colors">
+                            Click to Open
+                        </p>
                     </div>
                 </div>
             }
-            unlockAction={(unlock) => {
-                // Custom unlock logic with typing
-                const [typed, setTyped] = useState('');
-
-                useEffect(() => {
-                    const handleKeyDown = (e: KeyboardEvent) => {
-                        const char = e.key.toLowerCase();
-                        if (char.length === 1 && /[a-z]/.test(char)) {
-                            setTyped(prev => {
-                                const next = (prev + char).slice(-4);
-                                if (next === 'open') {
-                                    unlock();
-                                }
-                                return next;
-                            });
-                        }
-                    };
-                    window.addEventListener('keydown', handleKeyDown);
-                    return () => window.removeEventListener('keydown', handleKeyDown);
-                }, [unlock]);
-
-                return null; // Logic only
-            }}
+            unlockAction={(unlock) => (
+                <div
+                    className="absolute inset-0 z-50 cursor-pointer"
+                    onClick={() => unlock()}
+                />
+            )}
         >
             <div className="text-left space-y-6 relative z-10 px-2 font-serif leading-relaxed text-zinc-300 text-lg">
-                <p>
-                    It was a <span className="text-yellow-500 font-bold">{formattedDate}</span>.
-                </p>
-                <p>
-                    You sat down, cracked your knuckles, and locked in.
-                </p>
-                <p>
-                    For a moment, time stopped. You hit a blazing <span className="text-green-500 font-bold">{wpm} WPM</span> with <span className="text-blue-500 font-bold">{acc}%</span> accuracy.
-                </p>
-                <p>
-                    It wasn't just typing. It was <span className="italic text-white">flow</span>.
-                </p>
+                <ScrambleText
+                    className="block"
+                    text={`It was a ${formattedDate}.`}
+                    delay={500}
+                />
+                <ScrambleText
+                    className="block"
+                    text="You sat down, cracked your knuckles, and locked in."
+                    delay={1500}
+                />
+                <div className="relative">
+                    <ScrambleText
+                        className="block"
+                        text={`For a moment, time stopped. You hit a blazing ${wpm} WPM with ${acc}% accuracy.`}
+                        delay={2500}
+                    />
+                </div>
+                <ScrambleText
+                    className="block italic text-white"
+                    text="It wasn't just typing. It was flow."
+                    delay={4000}
+                />
                 <div className="flex justify-end mt-8">
                     <span className="text-zinc-700 text-xs font-mono border-t border-zinc-800 pt-2">
                         PAGE {wpm}
@@ -368,12 +370,14 @@ const IdentitySlide = ({ data }: { data: any }) => {
                 </div>
                 <div>
                     <h3 className="text-xl font-bold text-white line-clamp-2 leading-tight">{keyboard}</h3>
-                    <p className="text-xs text-zinc-600 mt-2">Main Driver</p>
+                    <p className="text-xs text-zinc-600 mt-2">
+                        {keyboard === 'Unknown Keyboard' ? "Add your keyboard on Monkeytype!" : "Main Driver"}
+                    </p>
                 </div>
             </div>
             <div className="mt-8 px-8">
                 <p className="text-lg text-white font-serif italic opacity-80 leading-relaxed">
-                    "{data.details?.bio || 'Nothing found against your monkeytype profile'}"
+                    "{data.details?.bio || 'Your bio is looking a bit empty... update your Monkeytype profile to personalize this card!'}"
                 </p>
                 {website && (
                     <p className="mt-4 text-center">
@@ -430,9 +434,14 @@ const SummarySlide = ({ data }: { data: any }) => {
             <div className="relative w-full h-full flex flex-col justify-between pt-2">
                 {/* Header */}
                 <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full overflow-hidden border border-zinc-700 bg-zinc-800 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-full overflow-hidden border border-zinc-700 bg-zinc-800 flex items-center justify-center relative group">
                         {(!data.avatarUrl || data.avatarUrl.includes('default')) ? (
-                            <User className="w-6 h-6 text-zinc-500" />
+                            <>
+                                <User className="w-6 h-6 text-zinc-500" />
+                                <div className="absolute inset-0 bg-black/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity p-1 text-center">
+                                    <span className="text-[6px] text-yellow-500 leading-tight">Add Avatar on Monkeytype</span>
+                                </div>
+                            </>
                         ) : (
                             <img src={data.avatarUrl} alt={data.name} className="w-full h-full object-cover" />
                         )}
