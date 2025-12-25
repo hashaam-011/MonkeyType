@@ -2,9 +2,14 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, ChevronLeft, Home, Type, Clock, Trophy, Activity, Flame, Users, User, Keyboard, Crown, Music, Volume2, VolumeX, BookOpen } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Home, Type, Clock, Trophy, Activity, Flame, Users, User, Keyboard, Crown, Music, Volume2, VolumeX, BookOpen, Lock, Share2, Mail, Heart, Palette } from 'lucide-react';
+import InteractiveCard from './InteractiveCard';
+import KeyboardTestButton from './KeyboardTestButton';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
+// @ts-ignore
+import mtLogo from '@/app/assets/image.png';
 
 // --- Assets ---
 // Using a placeholder Lo-Fi track. In a real app, this would be a local asset or a stable CDN link.
@@ -18,7 +23,7 @@ const MUSIC_URL = "https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3
 const PlayingCard = ({ children, className }: { children: React.ReactNode; className?: string }) => {
     return (
         <div className={cn(
-            "relative w-full max-w-sm md:max-w-md aspect-[3/4] bg-zinc-950 rounded-3xl border-4 border-zinc-800 shadow-2xl flex flex-col items-center justify-center p-8 overflow-hidden transform-gpu transition-all",
+            "relative w-full max-w-sm md:max-w-md aspect-[3/4] bg-[var(--card-bg)] rounded-3xl border-4 border-zinc-800 shadow-2xl flex flex-col items-center justify-center p-8 overflow-hidden transform-gpu transition-all",
             // Subtle gradient shine
             "before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/5 before:to-transparent before:pointer-events-none",
             className
@@ -72,30 +77,67 @@ const MusicPlayer = () => {
     );
 };
 
+// --- Theme Switcher ---
+const themes = ['default', 'serika_dark', 'carbon', 'botanical'] as const;
+type Theme = typeof themes[number];
+
+const ThemeSwitcher = ({ currentTheme, setTheme }: { currentTheme: Theme, setTheme: (t: Theme) => void }) => {
+    const cycleTheme = () => {
+        const idx = themes.indexOf(currentTheme);
+        const next = themes[(idx + 1) % themes.length];
+        setTheme(next);
+    };
+
+    return (
+        <button
+            onClick={cycleTheme}
+            className="absolute top-6 right-20 z-30 p-3 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-[var(--accent-color)] transition-all hover:scale-110"
+            title={`Theme: ${currentTheme}`}
+        >
+            <Palette className="w-5 h-5" />
+        </button>
+    );
+};
+
 // --- Slides ---
 
-const IntroSlide = ({ data }: { data: any }) => (
-    <PlayingCard className="border-yellow-500/50 shadow-yellow-500/10">
-        <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: 'spring', duration: 0.8 }}
-            className="w-24 h-24 rounded-full overflow-hidden border-4 border-yellow-500 mb-6 shadow-lg shadow-yellow-500/20"
-        >
-            {/* Avatar */}
-            <img src={data.avatarUrl} alt={data.name} className="w-full h-full object-cover" />
-        </motion.div>
-        <h2 className="text-4xl font-bold text-white tracking-tight mb-2">
-            Hello,
-        </h2>
-        <h1 className="text-5xl font-black text-yellow-500 mb-8 break-all line-clamp-2">
-            {data.name}
-        </h1>
-        <p className="text-xl text-zinc-400 font-light max-w-[200px]">
-            Your <span className="font-mono text-white font-bold">2025</span> Typing Wrap is ready.
-        </p>
-    </PlayingCard>
-);
+const IntroSlide = ({ data }: { data: any }) => {
+    // Check for default or missing avatar
+    const isDefaultAvatar = !data.avatarUrl || data.avatarUrl.includes('default') || data.avatarUrl === '';
+
+    return (
+        <PlayingCard className="border-yellow-500/50 shadow-yellow-500/10">
+            <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', duration: 0.8 }}
+                className="w-24 h-24 rounded-full overflow-hidden border-4 border-yellow-500 mb-6 shadow-lg shadow-yellow-500/20 bg-zinc-800 flex items-center justify-center group relative"
+            >
+                {/* Avatar Logic */}
+                {isDefaultAvatar ? (
+                    <>
+                        <User className="w-12 h-12 text-zinc-500 animate-pulse" />
+                        {/* Tooltip on hover */}
+                        <div className="absolute inset-0 bg-black/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity p-1 text-center">
+                            <span className="text-[8px] text-white">Nothing found against your monkeytype profile</span>
+                        </div>
+                    </>
+                ) : (
+                    <img src={data.avatarUrl} alt={data.name} className="w-full h-full object-cover" />
+                )}
+            </motion.div>
+            <h2 className="text-4xl font-bold text-white tracking-tight mb-2">
+                Hello,
+            </h2>
+            <h1 className="text-5xl font-black text-yellow-500 mb-8 break-all line-clamp-2">
+                {data.name}
+            </h1>
+            <p className="text-xl text-zinc-400 font-light max-w-[200px]">
+                Your <span className="font-mono text-white font-bold">2025</span> Typing Wrap is ready.
+            </p>
+        </PlayingCard>
+    )
+};
 
 const TestsSlide = ({ data }: { data: any }) => (
     <PlayingCard>
@@ -150,7 +192,9 @@ const WpmSlide = ({ data }: { data: any }) => {
             </motion.h2>
             <span className="text-xl font-bold text-white bg-green-500/10 px-4 py-1 rounded-full border border-green-500/20">WPM</span>
 
-            <div className="mt-12 w-full px-8 space-y-2">
+            <KeyboardTestButton className="mx-auto" wpm={best} returnStep={3} username={data.name} />
+
+            <div className="mt-8 w-full px-8 space-y-2">
                 <div className="flex justify-between text-sm">
                     <span className="text-zinc-500">15s PB</span>
                     <span className="text-white font-mono">{best15 || '-'}</span>
@@ -180,13 +224,47 @@ const StorySlide = ({ data }: { data: any }) => {
     const formattedDate = date.toLocaleDateString("en-US", { month: 'long', day: 'numeric' });
 
     return (
-        <PlayingCard className="border-zinc-700 bg-[#121212]">
-            <div className="absolute top-6 left-1/2 -translate-x-1/2 text-zinc-800">
-                <BookOpen className="w-32 h-32 opacity-20" />
-            </div>
+        <InteractiveCard
+            title="The Chapter of 2025"
+            className="border-zinc-700 bg-[#121212]"
+            cover={
+                <div className="flex flex-col items-center justify-center h-full w-full relative bg-[#1a1a1a]">
+                    {/* Envelope Flap Look */}
+                    <div className="absolute top-0 w-full h-1/2 bg-[#222] clip-path-polygon-[0_0,100%_0,50%_100%] shadow-xl" style={{ clipPath: 'polygon(0 0, 100% 0, 50% 100%)' }} />
 
-            <p className="text-sm text-zinc-500 uppercase tracking-[0.2em] mb-12 font-semibold relative z-10">The Chapter of {date.getFullYear()}</p>
+                    <div className="z-10 bg-zinc-800 p-4 rounded-full shadow-2xl border-4 border-zinc-700">
+                        <Mail className="w-12 h-12 text-zinc-400" />
+                    </div>
+                    <div className="mt-8 text-center px-6">
+                        <p className="text-zinc-500 font-serif italic text-lg opacity-60">A message from 2025...</p>
+                        <p className="text-xs text-zinc-700 mt-2 uppercase tracking-widest">Type "open" to unlock</p>
+                    </div>
+                </div>
+            }
+            unlockAction={(unlock) => {
+                // Custom unlock logic with typing
+                const [typed, setTyped] = useState('');
 
+                useEffect(() => {
+                    const handleKeyDown = (e: KeyboardEvent) => {
+                        const char = e.key.toLowerCase();
+                        if (char.length === 1 && /[a-z]/.test(char)) {
+                            setTyped(prev => {
+                                const next = (prev + char).slice(-4);
+                                if (next === 'open') {
+                                    unlock();
+                                }
+                                return next;
+                            });
+                        }
+                    };
+                    window.addEventListener('keydown', handleKeyDown);
+                    return () => window.removeEventListener('keydown', handleKeyDown);
+                }, [unlock]);
+
+                return null; // Logic only
+            }}
+        >
             <div className="text-left space-y-6 relative z-10 px-2 font-serif leading-relaxed text-zinc-300 text-lg">
                 <p>
                     It was a <span className="text-yellow-500 font-bold">{formattedDate}</span>.
@@ -200,12 +278,13 @@ const StorySlide = ({ data }: { data: any }) => {
                 <p>
                     It wasn't just typing. It was <span className="italic text-white">flow</span>.
                 </p>
+                <div className="flex justify-end mt-8">
+                    <span className="text-zinc-700 text-xs font-mono border-t border-zinc-800 pt-2">
+                        PAGE {wpm}
+                    </span>
+                </div>
             </div>
-
-            <div className="absolute bottom-8 right-8 text-zinc-700 text-xs font-mono">
-                PAGE {wpm}
-            </div>
-        </PlayingCard>
+        </InteractiveCard>
     );
 }
 
@@ -294,7 +373,7 @@ const IdentitySlide = ({ data }: { data: any }) => {
             </div>
             <div className="mt-8 px-8">
                 <p className="text-lg text-white font-serif italic opacity-80 leading-relaxed">
-                    "{data.details?.bio || 'Just typing.'}"
+                    "{data.details?.bio || 'Nothing found against your monkeytype profile'}"
                 </p>
                 {website && (
                     <p className="mt-4 text-center">
@@ -315,74 +394,119 @@ const SummarySlide = ({ data }: { data: any }) => {
     const hours = (data.stats.timeTyping / 3600).toFixed(1);
     const percentile = data.calculatedProfile?.percentile60s;
     const topVal = percentile ? Math.max(1, 100 - Math.round(percentile)) : null;
-    //
-    return (
-        <div className="relative w-full max-w-sm aspect-[3/4.5] bg-black rounded-3xl border border-zinc-700 p-6 flex flex-col justify-between shadow-2xl scale-[0.95] md:scale-100">
-            {/* Header */}
-            <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full overflow-hidden border border-zinc-700">
-                    <img src={data.avatarUrl} alt={data.name} className="w-full h-full object-cover" />
-                </div>
-                <div>
-                    <h3 className="font-bold text-xl text-white">{data.name}</h3>
-                    <p className="text-[10px] text-zinc-500 uppercase tracking-widest">2025 Wrap</p>
-                </div>
-            </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-2 gap-4 my-4">
-                <div className="bg-zinc-900/80 p-4 rounded-2xl border border-zinc-800">
-                    <p className="text-[10px] text-zinc-500 uppercase mb-1">Tests</p>
-                    <p className="text-2xl font-bold text-white">{data.stats.completedTests}</p>
+    const handleShare = () => {
+        const text = `I just wrapped my 2025 Monkeytype stats! 🐵\nPeak Speed: ${Math.round(best)} WPM\nGlobal Rank: Top ${topVal || '?'}%\nCheck out yours at monkeywrap.vercel.app`;
+        navigator.clipboard.writeText(text).then(() => {
+            alert("Copied to clipboard!");
+        });
+    };
+
+    return (
+        <InteractiveCard
+            title="Your 2025 Wrap"
+            className="border-zinc-700 bg-black"
+            cover={
+                <div className="flex flex-col items-center justify-center h-full w-full relative">
+                    <div className="flex flex-col items-center justify-center z-10 animate-bounce-slow">
+                        {/* MonkeyType Logo as the 'Seal' to click */}
+                        <div className="w-32 h-32 relative cursor-pointer hover:scale-105 transition-transform duration-300">
+                            <img src={mtLogo.src} alt="Monkeytype Logo" className="w-full h-full object-contain drop-shadow-[0_0_15px_rgba(234,179,8,0.3)]" />
+                        </div>
+                        <p className="text-yellow-500/50 font-mono text-sm mt-8 uppercase tracking-widest">Click Logo to Reveal</p>
+                    </div>
                 </div>
-                <div className="bg-zinc-900/80 p-4 rounded-2xl border border-zinc-800">
-                    <p className="text-[10px] text-zinc-500 uppercase mb-1">Hours</p>
-                    <p className="text-2xl font-bold text-blue-500">{hours}</p>
+            }
+            unlockAction={(unlock) => {
+                // Break the seal logic
+                return (
+                    <div className="absolute inset-0 z-20" onClick={() => {
+                        // Trigger break animation then unlock
+                        unlock();
+                    }} />
+                );
+            }}
+        >
+            <div className="relative w-full h-full flex flex-col justify-between pt-2">
+                {/* Header */}
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full overflow-hidden border border-zinc-700 bg-zinc-800 flex items-center justify-center">
+                        {(!data.avatarUrl || data.avatarUrl.includes('default')) ? (
+                            <User className="w-6 h-6 text-zinc-500" />
+                        ) : (
+                            <img src={data.avatarUrl} alt={data.name} className="w-full h-full object-cover" />
+                        )}
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-xl text-white">{data.name}</h3>
+                        <p className="text-[10px] text-zinc-500 uppercase tracking-widest">2025 Wrap</p>
+                    </div>
                 </div>
-                <div className="bg-zinc-900/80 p-4 rounded-2xl border border-zinc-800">
-                    <p className="text-[10px] text-zinc-500 uppercase mb-1">Peak WPM</p>
-                    <p className="text-2xl font-bold text-green-500">{Math.round(best)}</p>
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 gap-3 my-4">
+                    <div className="bg-zinc-900/80 p-3 rounded-2xl border border-zinc-800">
+                        <p className="text-[10px] text-zinc-500 uppercase mb-1">Tests</p>
+                        <p className="text-xl font-bold text-white">{data.stats.completedTests}</p>
+                    </div>
+                    <div className="bg-zinc-900/80 p-3 rounded-2xl border border-zinc-800">
+                        <p className="text-[10px] text-zinc-500 uppercase mb-1">Hours</p>
+                        <p className="text-xl font-bold text-blue-500">{hours}</p>
+                    </div>
+                    <div className="bg-zinc-900/80 p-3 rounded-2xl border border-zinc-800">
+                        <p className="text-[10px] text-zinc-500 uppercase mb-1">Peak WPM</p>
+                        <p className="text-xl font-bold text-green-500">{Math.round(best)}</p>
+                    </div>
+                    <div className="bg-zinc-900/80 p-3 rounded-2xl border border-zinc-800">
+                        <p className="text-[10px] text-zinc-500 uppercase mb-1">Rank</p>
+                        <p className="text-xl font-bold text-purple-500">
+                            {topVal ? `Top ${topVal}%` : '-'}
+                        </p>
+                    </div>
+                    <div className="bg-zinc-900/80 p-3 rounded-2xl border border-zinc-800 col-span-2 flex justify-between items-center">
+                        <div>
+                            <p className="text-[10px] text-zinc-500 uppercase mb-1">Streak</p>
+                            <p className="text-lg font-bold text-orange-500">{data.maxStreak || 0} days</p>
+                        </div>
+                        <Flame className="w-5 h-5 text-orange-500/50" />
+                    </div>
                 </div>
-                <div className="bg-zinc-900/80 p-4 rounded-2xl border border-zinc-800">
-                    <p className="text-[10px] text-zinc-500 uppercase mb-1">Rank</p>
-                    <p className="text-2xl font-bold text-purple-500">
-                        {topVal ? `Top ${topVal}%` : '-'}
+
+                {/* Share Button */}
+                <button
+                    onClick={handleShare}
+                    className="w-full py-3 bg-white text-black font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-zinc-200 transition-colors mb-4"
+                >
+                    <Share2 className="w-4 h-4" /> Share Wrap
+                </button>
+
+                {/* Footer */}
+                <div className="pt-4 border-t border-zinc-800 text-center space-y-2">
+                    <p className="text-zinc-600 text-[10px] tracking-wider">MONKEYWRAP.VERCEL.APP</p>
+                    <p className="text-zinc-500 text-[10px] flex items-center justify-center gap-1">
+                        Made by <a href="https://github.com/hashaam-011" target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-white underline decoration-zinc-700">hashaam-011</a> with <Heart className="w-3 h-3 text-red-500 fill-red-500" />
                     </p>
                 </div>
-                <div className="bg-zinc-900/80 p-4 rounded-2xl border border-zinc-800 col-span-2 flex justify-between items-center">
-                    <div>
-                        <p className="text-[10px] text-zinc-500 uppercase mb-1">Streak</p>
-                        <p className="text-xl font-bold text-orange-500">{data.maxStreak || 0} days</p>
-                    </div>
-                    <Flame className="w-6 h-6 text-orange-500/50" />
-                </div>
             </div>
-
-            {/* Footer */}
-            <div className="pt-4 border-t border-zinc-800 text-center">
-                <div className="flex justify-center gap-2 mb-2">
-                    <div className="w-2 h-2 rounded-full bg-yellow-500" />
-                    <div className="w-2 h-2 rounded-full bg-blue-500" />
-                    <div className="w-2 h-2 rounded-full bg-green-500" />
-                </div>
-                <p className="text-zinc-600 text-xs tracking-wider">MONKEYWRAP.VERCEL.APP</p>
-            </div>
-        </div>
+        </InteractiveCard >
     );
 };
 
 export default function WrapDeck({ data }: { data: any }) {
-    const [step, setStep] = useState(0);
+    const searchParams = useSearchParams();
+    const initialStep = parseInt(searchParams.get('step') || '0');
+    const [step, setStep] = useState(initialStep);
+    const [theme, setTheme] = useState<Theme>('default');
 
     const slides = [
         { id: 'intro', component: IntroSlide },
-        { id: 'story', component: StorySlide }, // Inserted Story slide here
         { id: 'tests', component: TestsSlide },
         { id: 'time', component: TimeSlide },
         { id: 'wpm', component: WpmSlide },
         { id: 'percentile', component: PercentileSlide },
         { id: 'dedication', component: DedicationSlide },
         { id: 'identity', component: IdentitySlide },
+        { id: 'story', component: StorySlide }, // Moved Story slide to near end
         { id: 'summary', component: SummarySlide },
     ];
 
@@ -397,7 +521,7 @@ export default function WrapDeck({ data }: { data: any }) {
     };
 
     return (
-        <div className="relative flex h-screen w-full flex-col items-center justify-center p-6 bg-black overflow-hidden font-sans">
+        <div className={`relative flex h-screen w-full flex-col items-center justify-center p-6 bg-[var(--bg-color)] text-[var(--text-color)] overflow-hidden font-sans transition-colors duration-500 theme-${theme}`}>
             {/* Ambient Background - Dynamic based on slide */}
             <div className="absolute inset-0 pointer-events-none">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-zinc-800/50 to-transparent" />
@@ -405,6 +529,7 @@ export default function WrapDeck({ data }: { data: any }) {
             </div>
 
             <MusicPlayer />
+            <ThemeSwitcher currentTheme={theme} setTheme={setTheme} />
 
             <Link href="/" className="absolute top-6 left-6 z-20 p-3 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white transition-all hover:bg-zinc-800 hover:scale-110">
                 <Home className="w-5 h-5" />

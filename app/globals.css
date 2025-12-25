@@ -22,5 +22,34 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Theme Definitions */
+.theme-default {
+    --bg-color: #000000;
+    --text-color: #ffffff;
+    --accent-color: #eab308; /* yellow-500 */
+    --card-bg: #18181b; /* zinc-900 */
+}
+
+.theme-serika_dark {
+    --bg-color: #323437;
+    --text-color: #d1d0c5;
+    --accent-color: #e2b714;
+    --card-bg: #2c2e31;
+}
+
+.theme-carbon {
+    --bg-color: #313131;
+    --text-color: #f6f6f6;
+    --accent-color: #f66e0d;
+    --card-bg: #2b2b2b;
+}
+
+.theme-botanical {
+    --bg-color: #7b9c98;
+    --text-color: #e8e8e8;
+    --accent-color: #e06c75; /* pinkish */
+    --card-bg: #6b8c88;
 }
