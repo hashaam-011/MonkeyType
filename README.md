@@ -23,5 +23,8 @@ This project is **not affiliated with, endorsed by, or connected to Monkeytype**
 Built with ❤️ by [hashaam-011](https://github.com/hashaam-011).
 Special thanks to the Monkeytype team for creating the best typing test on the web.
 
+## Copyright
+Copyright © 2025 Meer Hashaam Khan. All rights reserved.
+
 ---
 *Note: This application reads public data from your Monkeytype profile or data you provide. It does not store your personal information on any server.*

@@ -104,7 +104,9 @@ const ThemeSwitcher = ({ currentTheme, setTheme }: { currentTheme: Theme, setThe
 
 const IntroSlide = ({ data }: { data: any }) => {
     // Check for default or missing avatar
-    const isDefaultAvatar = !data.avatarUrl || data.avatarUrl.includes('default') || data.avatarUrl === '';
+    const [imgError, setImgError] = useState(false);
+    const isDefaultAvatar = !data.avatarUrl || data.avatarUrl.includes('default') || data.avatarUrl.includes('nomad') || data.avatarUrl === '';
+    const showFallback = isDefaultAvatar || imgError;
 
     return (
         <PlayingCard className="border-yellow-500/50 shadow-yellow-500/10">
@@ -115,20 +117,25 @@ const IntroSlide = ({ data }: { data: any }) => {
                 className="w-24 h-24 rounded-full overflow-hidden border-4 border-yellow-500 mb-6 shadow-lg shadow-yellow-500/20 bg-zinc-800 flex items-center justify-center group relative"
             >
                 {/* Avatar Logic */}
-                {isDefaultAvatar ? (
+                {showFallback ? (
                     <>
-                        <div className="absolute inset-0 bg-gradient-to-tr from-zinc-800 via-zinc-700 to-zinc-800 animate-pulse" />
-                        <User className="w-10 h-10 text-zinc-500 relative z-10" />
-
-                        {/* Tooltip on hover */}
-                        <div className="absolute inset-0 bg-black/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity p-2 text-center z-20">
-                            <span className="text-[9px] text-yellow-500 font-bold leading-tight">
-                                Please add an avatar to your Monkeytype profile!
-                            </span>
+                        <div className="absolute inset-0 bg-gradient-to-tr from-yellow-500 via-zinc-800 to-yellow-500 animate-pulse" />
+                        <div className="relative z-10 flex flex-col items-center justify-center h-full w-full">
+                            <User className="w-10 h-10 text-yellow-200 animate-bounce drop-shadow-md" />
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-[1px]">
+                                <p className="text-[9px] font-bold text-yellow-400 text-center px-2 leading-tight">
+                                    Please add your profile pic in Monkeytype!
+                                </p>
+                            </div>
                         </div>
                     </>
                 ) : (
-                    <img src={data.avatarUrl} alt={data.name} className="w-full h-full object-cover" />
+                    <img
+                        src={data.avatarUrl}
+                        alt={data.name}
+                        className="w-full h-full object-cover"
+                        onError={() => setImgError(true)}
+                    />
                 )}
             </motion.div>
             <h2 className="text-4xl font-bold text-white tracking-tight mb-2">
@@ -399,6 +406,10 @@ const SummarySlide = ({ data }: { data: any }) => {
     const percentile = data.calculatedProfile?.percentile60s;
     const topVal = percentile ? Math.max(1, 100 - Math.round(percentile)) : null;
 
+    const [imgError, setImgError] = useState(false);
+    const isDefaultAvatar = !data.avatarUrl || data.avatarUrl.includes('default') || data.avatarUrl.includes('nomad') || data.avatarUrl === '';
+    const showFallback = isDefaultAvatar || imgError;
+
     const handleShare = () => {
         const text = `I just wrapped my 2025 Monkeytype stats! 🐵\nPeak Speed: ${Math.round(best)} WPM\nGlobal Rank: Top ${topVal || '?'}%\nCheck out yours at monkeywrap.vercel.app`;
         navigator.clipboard.writeText(text).then(() => {
@@ -435,15 +446,23 @@ const SummarySlide = ({ data }: { data: any }) => {
                 {/* Header */}
                 <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-full overflow-hidden border border-zinc-700 bg-zinc-800 flex items-center justify-center relative group">
-                        {(!data.avatarUrl || data.avatarUrl.includes('default')) ? (
+                        {showFallback ? (
                             <>
-                                <User className="w-6 h-6 text-zinc-500" />
-                                <div className="absolute inset-0 bg-black/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity p-1 text-center">
-                                    <span className="text-[6px] text-yellow-500 leading-tight">Add Avatar on Monkeytype</span>
+                                <div className="absolute inset-0 bg-gradient-to-tr from-yellow-500 via-zinc-800 to-yellow-500 animate-pulse" />
+                                <div className="relative z-10 flex flex-col items-center justify-center h-full w-full">
+                                    <User className="w-6 h-6 text-yellow-200 animate-bounce" />
+                                    <div className="absolute inset-0 flex items-center justify-center bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 pointer-events-none">
+                                        <span className="text-[6px] text-yellow-400 font-bold text-center leading-none">Add DP on Monkeytype</span>
+                                    </div>
                                 </div>
                             </>
                         ) : (
-                            <img src={data.avatarUrl} alt={data.name} className="w-full h-full object-cover" />
+                            <img
+                                src={data.avatarUrl}
+                                alt={data.name}
+                                className="w-full h-full object-cover"
+                                onError={() => setImgError(true)}
+                            />
                         )}
                     </div>
                     <div>
